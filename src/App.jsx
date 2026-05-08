@@ -7,6 +7,10 @@ import AlertsTable from './components/AlertsTable';
 import BlockchainLogs from './components/BlockchainLogs';
 
 function EmergencyBanner() {
+  const { aiData, aiConnectionStatus } = useSocket();
+  const isOnline = aiConnectionStatus === 'connected' && aiData.health === 'ONLINE';
+  const confidence = isOnline ? aiData.confidence.toFixed(1) : '97.3';
+
   return (
     <div className="flex-shrink-0 flex items-center gap-3 px-5 py-2 relative overflow-hidden"
       style={{
@@ -28,7 +32,7 @@ function EmergencyBanner() {
         ⚠ EMERGENCY ALERT
       </span>
       <span className="text-xs font-mono-code" style={{ color: 'rgba(255,255,255,0.7)' }}>
-        Active fire detected in Building A, Zone A-3 · Floor 3 · AI Confidence: 97.3%
+        Active fire detected in Building A, Zone A-3 · Floor 3 · AI Confidence: {confidence}%
       </span>
       <span className="ml-auto font-mono-code text-xs px-2 py-0.5 rounded"
         style={{ background: 'rgba(255,77,77,0.15)', color: '#FF4D4D', border: '1px solid rgba(255,77,77,0.4)', letterSpacing: '0.1em', flexShrink: 0 }}>
@@ -49,29 +53,41 @@ function GridBackground() {
   );
 }
 
+import { useSocket } from './context/SocketContext';
+
 function AIStatusCard() {
+  const { aiData, aiConnectionStatus } = useSocket();
+  const isConnected = aiConnectionStatus === 'connected';
+  const isOnline = isConnected && aiData.health === 'ONLINE';
+
   return (
-    <div className="glass-card p-4 flex-shrink-0" style={{ border: '1px solid rgba(0,209,255,0.2)' }}>
+    <div className="glass-card p-4 flex-shrink-0" style={{ border: `1px solid ${isOnline ? 'rgba(0,209,255,0.2)' : 'rgba(255,77,77,0.2)'}` }}>
       <div className="flex items-center gap-2 mb-3">
         <div className="relative">
           <div className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(0,209,255,0.1)', border: '1px solid rgba(0,209,255,0.35)' }}>
+            style={{ background: isOnline ? 'rgba(0,209,255,0.1)' : 'rgba(255,77,77,0.1)', border: `1px solid ${isOnline ? 'rgba(0,209,255,0.35)' : 'rgba(255,77,77,0.35)'}` }}>
             <span className="text-sm">🤖</span>
           </div>
           <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
-            style={{ background: '#00FF87', boxShadow: '0 0 6px #00FF87', animation: 'pulse-dot 1.5s infinite' }} />
+            style={{ 
+              background: isOnline ? '#00FF87' : '#FF4D4D', 
+              boxShadow: `0 0 6px ${isOnline ? '#00FF87' : '#FF4D4D'}`, 
+              animation: 'pulse-dot 1.5s infinite' 
+            }} />
         </div>
         <div>
-          <p className="font-orbitron text-xs font-bold tracking-wider" style={{ color: '#00D1FF' }}>AI ENGINE</p>
-          <p className="text-xs font-mono-code" style={{ color: 'rgba(148,163,184,0.5)', fontSize: '9px' }}>SENTINEL-v3 NEURAL NET</p>
+          <p className="font-orbitron text-xs font-bold tracking-wider" style={{ color: isOnline ? '#00D1FF' : '#FF4D4D' }}>AI ENGINE</p>
+          <p className="text-xs font-mono-code" style={{ color: 'rgba(148,163,184,0.5)', fontSize: '9px' }}>
+            {isOnline ? `SENTINEL ${aiData.model}` : 'SYSTEM OFFLINE'}
+          </p>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
         {[
-          { label: 'INFERENCE', value: '12ms', color: '#00FF87' },
-          { label: 'ACCURACY', value: '99.2%', color: '#00D1FF' },
-          { label: 'FPS', value: '30', color: '#00D1FF' },
-          { label: 'MODEL', value: 'YOLOv9', color: '#8B5CF6' },
+          { label: 'INFERENCE', value: isOnline ? `${aiData.inference_time}ms` : '--', color: isOnline ? '#00FF87' : '#94A3B8' },
+          { label: 'CONFIDENCE', value: isOnline ? `${aiData.confidence.toFixed(1)}%` : '--', color: isOnline ? '#00D1FF' : '#94A3B8' },
+          { label: 'FPS', value: isOnline ? `${aiData.fps}` : '--', color: isOnline ? '#00D1FF' : '#94A3B8' },
+          { label: 'HEALTH', value: isOnline ? 'ONLINE' : 'ERROR', color: isOnline ? '#8B5CF6' : '#FF4D4D' },
         ].map((stat, i) => (
           <div key={i} className="rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <p className="font-mono-code" style={{ color: 'rgba(148,163,184,0.4)', fontSize: '8px', letterSpacing: '0.1em' }}>{stat.label}</p>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { MOCK_CAMERA_ZONES, MOCK_AI_DETECTIONS } from '../data/mockData';
+import { MOCK_CAMERA_ZONES } from '../data/mockData';
 import { Eye, Maximize2, Radio, Cpu } from 'lucide-react';
 import MJPEGStream from './MJPEGStream';
+import { useSocket } from '../context/SocketContext';
 
 // Read stream URL from env
 const ESP32_STREAM_URL   = import.meta.env.VITE_ESP32_STREAM_URL   || null;
@@ -9,19 +10,28 @@ const ESP32_SNAPSHOT_URL = import.meta.env.VITE_ESP32_SNAPSHOT_URL || null;
 
 export default function CameraPanel() {
   const [activeZone, setActiveZone] = useState(0);
-  const [confidence, setConfidence] = useState(97.3);
-  const [severity, setSeverity] = useState(87);
   const [frame, setFrame] = useState(0);
   const [useESP32, setUseESP32] = useState(!!ESP32_STREAM_URL);
+  
+  const { aiData, aiConnectionStatus } = useSocket();
+
+  // Mock values fallback if AI is offline
+  const [mockConfidence, setMockConfidence] = useState(97.3);
+  const [mockSeverity, setMockSeverity] = useState(87);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setConfidence(prev => Math.round(Math.min(99.9, Math.max(50, prev + (Math.random() * 2 - 1) * 0.8)) * 10) / 10);
-      setSeverity(prev => Math.min(100, Math.max(70, prev + Math.floor(Math.random() * 5 - 2))));
+      setMockConfidence(prev => Math.round(Math.min(99.9, Math.max(50, prev + (Math.random() * 2 - 1) * 0.8)) * 10) / 10);
+      setMockSeverity(prev => Math.min(100, Math.max(70, prev + Math.floor(Math.random() * 5 - 2))));
       setFrame(prev => prev + 1);
     }, 2500);
     return () => clearInterval(id);
   }, []);
+
+  const isAiOnline = aiConnectionStatus === 'connected' && aiData.health === 'ONLINE';
+  const confidence = isAiOnline ? aiData.confidence : mockConfidence;
+  const severity = isAiOnline ? aiData.severity : mockSeverity;
+  const aiDetections = isAiOnline ? aiData.detections : [];
 
   const zone = MOCK_CAMERA_ZONES[activeZone];
   const severityColor = severity >= 80 ? '#FF4D4D' : severity >= 60 ? '#FF8A00' : '#FFD700';
@@ -55,7 +65,7 @@ export default function CameraPanel() {
               cursor: 'pointer',
               letterSpacing: '0.08em',
             }}>
-            {useESP32 ? <><Radio size={10} /> ESP32</> : <><Cpu size={10} /> SIM</>}
+            {useESP32 ? <><Radio size={10} /> AI CAM</> : <><Cpu size={10} /> SIM</>}
           </button>
           <span className="text-xs font-mono-code" style={{ color: 'rgba(148,163,184,0.5)' }}>
             FRAME #{String(frame * 47 + 10284).padStart(6, '0')}
@@ -72,7 +82,7 @@ export default function CameraPanel() {
             snapshotUrl={ESP32_SNAPSHOT_URL}
             zone={zone.label}
             label={zone.id}
-            aiDetections={MOCK_AI_DETECTIONS}
+            aiDetections={aiDetections}
             className="w-full h-full"
             style={{ minHeight: 0 }}
           />
@@ -84,6 +94,7 @@ export default function CameraPanel() {
             severityColor={severityColor}
             zone={zone}
             frame={frame}
+            aiDetections={aiDetections}
           />
         )}
       </div>
@@ -146,7 +157,7 @@ export default function CameraPanel() {
 // ─────────────────────────────────────────────────────────────
 // Simulated fire feed (used when ESP32 is not available)
 // ─────────────────────────────────────────────────────────────
-function SimulatedFeed({ severity, severityLabel, severityColor, zone }) {
+function SimulatedFeed({ severity, severityLabel, severityColor, zone, aiDetections = [] }) {
   return (
     <div className="camera-feed rounded-lg w-full h-full relative" style={{ border: '1px solid rgba(255,77,77,0.25)' }}>
       <FireBackground severity={severity} />
@@ -160,7 +171,7 @@ function SimulatedFeed({ severity, severityLabel, severityColor, zone }) {
         }} />
 
       {/* AI Detection Boxes */}
-      {MOCK_AI_DETECTIONS.map((det, i) => (
+      {aiDetections.map((det, i) => (
         <div key={i} className="detection-box" style={{ left: det.x, top: det.y, width: det.w, height: det.h }}>
           <div className="detection-label">{det.label} {det.confidence}%</div>
           <span className="absolute" style={{ top: -2, left: -2, width: 10, height: 10, borderTop: '2px solid #FF4D4D', borderLeft: '2px solid #FF4D4D' }} />

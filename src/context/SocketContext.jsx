@@ -4,19 +4,36 @@ import { io } from 'socket.io-client';
 const SocketContext = createContext(null);
 
 const SOCKET_URL = 'http://localhost:3001';
+const AI_SOCKET_URL = import.meta.env.VITE_AI_SERVER_URL || 'http://localhost:5001';
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
-  const [connectionStatus, setConnectionStatus] = useState('connecting'); // 'connecting' | 'connected' | 'disconnected' | 'error'
+  const [aiSocket, setAiSocket] = useState(null);
+  
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const [aiConnectionStatus, setAiConnectionStatus] = useState('connecting');
+  
   const [sensorData, setSensorData] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [serverTime, setServerTime] = useState(null);
   const [latency, setLatency] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [aiData, setAiData] = useState({
+    detections: [],
+    confidence: 0,
+    severity: 0,
+    inference_time: 0,
+    fps: 0,
+    model: 'YOLOv8 nano',
+    health: 'OFFLINE'
+  });
+
   const reconnectAttempts = useRef(0);
   const lastPingTime = useRef(null);
 
   useEffect(() => {
+    // ─── Main Sensor Socket ───
     const socketInstance = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -26,13 +43,10 @@ export function SocketProvider({ children }) {
       timeout: 10000,
     });
 
-    // ─── Connection events ───
     socketInstance.on('connect', () => {
       console.log('[SENTINEL-WS] Connected:', socketInstance.id);
       setConnectionStatus('connected');
       reconnectAttempts.current = 0;
-
-      // Start latency measurement
       lastPingTime.current = Date.now();
       socketInstance.emit('sensor:request');
     });
@@ -49,22 +63,17 @@ export function SocketProvider({ children }) {
     });
 
     socketInstance.io.on('reconnect_attempt', (attempt) => {
-      console.log(`[SENTINEL-WS] Reconnecting... attempt ${attempt}`);
       setConnectionStatus('connecting');
     });
 
     socketInstance.io.on('reconnect', () => {
-      console.log('[SENTINEL-WS] Reconnected!');
       setConnectionStatus('connected');
     });
 
-    // ─── Data events ───
     socketInstance.on('sensor:initial', (data) => {
-      console.log('[SENTINEL-WS] Initial sensor data received');
       setSensorData(data.sensors);
       setServerTime(data.serverTime);
       setIsLoading(false);
-
       if (lastPingTime.current) {
         setLatency(Date.now() - lastPingTime.current);
       }
@@ -74,12 +83,7 @@ export function SocketProvider({ children }) {
       setSensorData(data.sensors);
       setServerTime(data.serverTime);
       setIsLoading(false);
-
-      // Measure round-trip approximation
-      setLatency(prev => {
-        const jitter = Math.floor(Math.random() * 6) - 3;
-        return Math.max(1, (prev || 15) + jitter);
-      });
+      setLatency(prev => Math.max(1, (prev || 15) + Math.floor(Math.random() * 6) - 3));
     });
 
     socketInstance.on('alert:new', (alert) => {
@@ -92,8 +96,39 @@ export function SocketProvider({ children }) {
 
     setSocket(socketInstance);
 
+    // ─── AI Socket ───
+    const aiSocketInstance = io(AI_SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+    });
+
+    aiSocketInstance.on('connect', () => {
+      console.log('[AI-WS] Connected:', aiSocketInstance.id);
+      setAiConnectionStatus('connected');
+    });
+
+    aiSocketInstance.on('disconnect', () => {
+      setAiConnectionStatus('disconnected');
+      setAiData(prev => ({ ...prev, health: 'OFFLINE' }));
+    });
+
+    aiSocketInstance.on('connect_error', () => {
+      setAiConnectionStatus('error');
+      setAiData(prev => ({ ...prev, health: 'ERROR' }));
+    });
+
+    aiSocketInstance.on('ai:update', (data) => {
+      setAiData(data);
+    });
+
+    setAiSocket(aiSocketInstance);
+
     return () => {
       socketInstance.disconnect();
+      aiSocketInstance.disconnect();
     };
   }, []);
 
@@ -114,6 +149,11 @@ export function SocketProvider({ children }) {
     isLoading,
     requestRefresh,
     reconnectAttempts: reconnectAttempts.current,
+    
+    // AI data
+    aiSocket,
+    aiConnectionStatus,
+    aiData,
   };
 
   return (
@@ -129,7 +169,6 @@ export function useSocket() {
   return ctx;
 }
 
-// Convenience hook: get a single sensor's data
 export function useSensor(sensorKey) {
   const { sensorData, isLoading, connectionStatus } = useSocket();
   const data = sensorData?.[sensorKey] || null;
