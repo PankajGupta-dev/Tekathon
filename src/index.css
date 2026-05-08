@@ -1,0 +1,347 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-primary: #0B1220;
+  --bg-secondary: #0F1A2E;
+  --bg-card: rgba(15, 26, 46, 0.7);
+  --red-alert: #FF4D4D;
+  --orange-warn: #FF8A00;
+  --cyan-accent: #00D1FF;
+  --green-safe: #00FF87;
+  --purple-accent: #8B5CF6;
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  --border-glow: rgba(0, 209, 255, 0.3);
+  --border-alert: rgba(255, 77, 77, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0B1220; }
+::-webkit-scrollbar-thumb { background: rgba(0,209,255,0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,209,255,0.6); }
+
+/* ===== GLASSMORPHISM ===== */
+.glass-card {
+  background: rgba(15, 26, 46, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 209, 255, 0.15);
+  border-radius: 12px;
+}
+
+.glass-card-alert {
+  background: rgba(30, 10, 10, 0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 77, 77, 0.35);
+  border-radius: 12px;
+}
+
+/* ===== GLOW EFFECTS ===== */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 209, 255, 0.2), 0 0 40px rgba(0, 209, 255, 0.08), inset 0 0 20px rgba(0, 209, 255, 0.03);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(255, 77, 77, 0.3), 0 0 40px rgba(255, 77, 77, 0.12);
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(255, 138, 0, 0.25), 0 0 40px rgba(255, 138, 0, 0.1);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(0, 255, 135, 0.2), 0 0 40px rgba(0, 255, 135, 0.08);
+}
+
+.text-glow-cyan { text-shadow: 0 0 12px rgba(0, 209, 255, 0.8); }
+.text-glow-red { text-shadow: 0 0 12px rgba(255, 77, 77, 0.9); }
+.text-glow-orange { text-shadow: 0 0 12px rgba(255, 138, 0, 0.8); }
+
+/* ===== ANIMATIONS ===== */
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 1; }
+  70% { transform: scale(1.3); opacity: 0; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes radar-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes blink-alert {
+  0%, 100% { opacity: 1; border-color: rgba(255,77,77,0.8); }
+  50% { opacity: 0.6; border-color: rgba(255,77,77,0.2); }
+}
+
+@keyframes data-flow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes grid-flash {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.08; }
+}
+
+@keyframes float-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: var(--target-w); }
+}
+
+@keyframes number-count {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ring-rotate {
+  from { stroke-dashoffset: 283; }
+  to { stroke-dashoffset: var(--dash-offset); }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
+}
+
+.animate-radar {
+  animation: radar-spin 4s linear infinite;
+}
+
+.animate-blink-alert {
+  animation: blink-alert 1.5s ease-in-out infinite;
+}
+
+.animate-data-flow {
+  animation: data-flow 2s ease-in-out infinite;
+}
+
+.animate-float-up {
+  animation: float-up 0.4s ease forwards;
+}
+
+/* ===== GRID BACKGROUND ===== */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 209, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 209, 255, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: grid-flash 4s ease-in-out infinite;
+}
+
+/* ===== CAMERA FEED ===== */
+.camera-feed {
+  position: relative;
+  background: #000;
+  overflow: hidden;
+}
+
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 77, 77, 0.05) 0%,
+    transparent 50%,
+    rgba(255, 138, 0, 0.05) 100%
+  );
+  pointer-events: none;
+}
+
+.scanline-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 209, 255, 0.6), transparent);
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+}
+
+/* ===== CORNER BRACKETS ===== */
+.corner-bracket {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: rgba(0, 209, 255, 0.8);
+  border-style: solid;
+}
+.corner-bracket.tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+.corner-bracket.tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; }
+.corner-bracket.bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
+.corner-bracket.br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+/* ===== ORBITRON FONT ===== */
+.font-orbitron { font-family: 'Orbitron', sans-serif; }
+.font-mono-code { font-family: 'JetBrains Mono', monospace; }
+
+/* ===== STATUS INDICATOR ===== */
+.status-online {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-online::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00FF87;
+  box-shadow: 0 0 8px #00FF87;
+  margin-right: 6px;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ===== CIRCULAR PROGRESS ===== */
+.circular-progress-svg {
+  transform: rotate(-90deg);
+}
+
+.circular-progress-svg circle.track {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 5;
+}
+
+.circular-progress-svg circle.fill {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== ALERT TABLE ===== */
+.alert-table th {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: rgba(0, 209, 255, 0.7);
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0,209,255,0.1);
+}
+
+.alert-table td {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.8);
+}
+
+.alert-table tr:hover td {
+  background: rgba(0, 209, 255, 0.04);
+}
+
+/* ===== TIMELINE ===== */
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeline-line {
+  width: 1px;
+  background: linear-gradient(to bottom, rgba(0,209,255,0.3), transparent);
+  flex-grow: 1;
+  margin: 2px auto;
+}
+
+/* ===== SEVERITY BAR ===== */
+.severity-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+
+.severity-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== BLOCKCHAIN LOG ===== */
+.blockchain-entry {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 6px 10px;
+  border-left: 2px solid rgba(139, 92, 246, 0.5);
+  margin-bottom: 4px;
+  background: rgba(139, 92, 246, 0.04);
+  border-radius: 0 4px 4px 0;
+  animation: float-up 0.4s ease forwards;
+}
+
+/* ===== SENSOR VALUE FLASH ===== */
+@keyframes value-update {
+  0% { color: rgba(0, 209, 255, 1); text-shadow: 0 0 20px rgba(0,209,255,0.9); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+.value-flash {
+  animation: value-update 0.5s ease forwards;
+}
+
+/* ===== AI DETECTION BOX ===== */
+.detection-box {
+  position: absolute;
+  border: 2px solid rgba(255, 77, 77, 0.9);
+  border-radius: 2px;
+  box-shadow: 0 0 12px rgba(255,77,77,0.4), inset 0 0 8px rgba(255,77,77,0.1);
+  animation: blink-alert 2s ease-in-out infinite;
+}
+
+.detection-label {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background: rgba(255, 77, 77, 0.9);
+  font-size: 9px;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
