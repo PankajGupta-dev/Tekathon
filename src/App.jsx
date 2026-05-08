@@ -1,3 +1,4 @@
+import { SocketProvider } from './context/SocketContext';
 import Navbar from './components/Navbar';
 import CameraPanel from './components/CameraPanel';
 import SensorPanel from './components/SensorPanel';
@@ -48,52 +49,6 @@ function GridBackground() {
   );
 }
 
-export default function App() {
-  return (
-    <div className="flex flex-col w-full h-full overflow-hidden relative"
-      style={{ background: '#0B1220' }}>
-
-      <GridBackground />
-
-      {/* Top Navbar */}
-      <Navbar />
-
-      {/* Emergency Banner */}
-      <EmergencyBanner />
-
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden relative z-10" style={{ minHeight: 0 }}>
-
-        {/* ─── LEFT PANEL: Camera + AI ─── */}
-        <div className="flex flex-col p-3 gap-3" style={{ width: '38%', minWidth: 0, minHeight: 0 }}>
-          <CameraPanel />
-        </div>
-
-        {/* ─── RIGHT PANEL: Sensors ─── */}
-        <div className="flex flex-col p-3 gap-3 overflow-y-auto" style={{ width: '22%', minWidth: 0, minHeight: 0 }}>
-          <SensorPanel />
-        </div>
-
-        {/* ─── FAR RIGHT PANEL: Timeline ─── */}
-        <div className="flex flex-col p-3 gap-3" style={{ width: '20%', minWidth: 0, minHeight: 0 }}>
-          <IncidentTimeline />
-        </div>
-
-        {/* ─── BOTTOM RIGHT COMPOSITE PANEL ─── */}
-        <div className="flex flex-col p-3 gap-3" style={{ width: '20%', minWidth: 0, minHeight: 0 }}>
-          <AIStatusCard />
-          <BlockchainLogs />
-        </div>
-      </div>
-
-      {/* ─── BOTTOM PANEL: Alerts Table ─── */}
-      <div className="flex-shrink-0 p-3 pt-0" style={{ height: '220px' }}>
-        <AlertsTable />
-      </div>
-    </div>
-  );
-}
-
 function AIStatusCard() {
   return (
     <div className="glass-card p-4 flex-shrink-0" style={{ border: '1px solid rgba(0,209,255,0.2)' }}>
@@ -125,5 +80,53 @@ function AIStatusCard() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <SocketProvider>
+      <div className="flex flex-col w-full h-full overflow-hidden relative"
+        style={{ background: '#0B1220' }}>
+
+        <GridBackground />
+
+        {/* Top Navbar */}
+        <Navbar />
+
+        {/* Emergency Banner */}
+        <EmergencyBanner />
+
+        {/* Main Content */}
+        <div className="flex flex-1 overflow-hidden relative z-10" style={{ minHeight: 0 }}>
+
+          {/* ─── LEFT PANEL: Camera + AI ─── */}
+          <div className="flex flex-col p-3 gap-3" style={{ width: '38%', minWidth: 0, minHeight: 0 }}>
+            <CameraPanel />
+          </div>
+
+          {/* ─── RIGHT PANEL: Sensors ─── */}
+          <div className="flex flex-col p-3 gap-3 overflow-y-auto" style={{ width: '22%', minWidth: 0, minHeight: 0 }}>
+            <SensorPanel />
+          </div>
+
+          {/* ─── FAR RIGHT PANEL: Timeline ─── */}
+          <div className="flex flex-col p-3 gap-3" style={{ width: '20%', minWidth: 0, minHeight: 0 }}>
+            <IncidentTimeline />
+          </div>
+
+          {/* ─── BOTTOM RIGHT COMPOSITE PANEL ─── */}
+          <div className="flex flex-col p-3 gap-3" style={{ width: '20%', minWidth: 0, minHeight: 0 }}>
+            <AIStatusCard />
+            <BlockchainLogs />
+          </div>
+        </div>
+
+        {/* ─── BOTTOM PANEL: Alerts Table ─── */}
+        <div className="flex-shrink-0 p-3 pt-0" style={{ height: '220px' }}>
+          <AlertsTable />
+        </div>
+      </div>
+    </SocketProvider>
   );
 }
